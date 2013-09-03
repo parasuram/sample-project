@@ -1,0 +1,829 @@
+<apex:page sidebar="false" standardController="Opportunity" extensions="CustomerSetupFormpagecontroller" action="{!RedirecttoDetail}">
+<apex:form id="formid">
+    <apex:outputPanel rendered="{!checkmessage}">
+        <apex:messages styleClass="locationError"/>
+    </apex:outputpanel>
+    <!--<apex:messages styleClass="locationError"/>-->
+    <apex:outputpanel rendered="{!Othermessage}">
+    <apex:messages styleClass="locationError"/>
+    <!--<apex:pageMessages ></apex:pageMessages>-->
+        
+    </apex:outputpanel>
+    <apex:outputPanel rendered="{!Error}">
+        <apex:messages styleClass="locationError"/>
+    </apex:outputpanel>
+    <!--<apex:pageMessages ></apex:pageMessages>-->
+      <!--<div Class="locationError" style="display:{!if(Error==true,'normal','none')};padding-left:50px;">* Please fill all the fields</div>-->
+    <html>
+        <head>
+        
+        <title>Customer Setup Form</title>
+        <style type="text/css">
+        .container
+        {
+            float:left;
+            width:100%;
+            font-family:Verdana, Arial, Helvetica, sans-serif;
+            font-size:12px;
+        }
+        .inner_container
+        {
+            margin:0 auto;
+            width:925px;
+            border:3px solid #999999;
+        }
+        .header
+        {
+            margin:0 auto;
+            text-align:center;
+            width:500px;
+            height:25px;
+            background-color:#666666;
+            color:#fff;
+            font-weight:bold;
+            font-size:18px;
+        }
+        .tdsize
+        {
+            font-size:12px;
+            font-weight:bold;
+        }
+        .locationError { color: red; font-weight: strong; font-weight:bold;}
+        </style>
+        </head>
+<body>
+
+<div class="container">
+    <apex:pageBlock mode="edit">
+    
+    <div class="inner_container">
+        <div class="header">
+            Customer Setup Form
+        </div>    
+        <table cellpadding="3" cellspacing="3"  border="0"  width="90%" style="margin:0 auto">
+            
+            <tr>
+                <td valign="top">
+                    <table cellspacing="3" cellpadding="6" border="0" width="100%">
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td align="left" colspan="2" valign="top">
+                                <table align="left" cellpadding="3" cellspacing="3" border="0" width="100%" style="margin-left:-8px;">
+                                <tr><td class="tdsize" width="60%" >Approved Apps &nbsp;&nbsp;&nbsp;
+                                
+                                <apex:actionRegion ><apex:inputcheckbox value="{!chkvalue}"  id="checkedone" >
+                                    <apex:actionsupport event="onchange" action="{!Onselectchk}" reRender="formid"/>
+                                </apex:inputcheckbox></apex:actionRegion></td></tr>
+                              </table>
+                          </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize" width="20%">Opportunity Owner </td>
+                            <td width="30%"><apex:outputfield value="{!opp.ownerid}" /></td>
+                            <td align="left" class="tdsize" width="20%">
+                            
+                                Attach Rates URL
+                            </td>
+                            <td width="30%">
+                                <!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font><apex:inputtext value="{!opp.Attach_Rates__c}" disabled="{!if(chkvalue==false,true,false)}"/>
+                                <!--</apex:outputPanel>-->
+                                <apex:outputPanel rendered="{!AttachRates}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Attach Rates</div>
+                                    </apex:outputPanel>
+                            </td>
+                            
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Products</td>
+                            <td><apex:outputField value="{!opp.Products__c}" /></td>
+                            <td align="left" class="tdsize">Date Entered</td>
+                            <td style="padding-left:16px;"><apex:inputField value="{!opp.Date_Entered_into_pipeline__c}"/>
+                                <apex:outputPanel rendered="{!dateentered}">
+                                <div style="color:Red;"> Please Enter Date below or equal to  <apex:outputText value=" {0,date,dd'/'MM'/'yyyy}">
+                                    <apex:param value="{!oppval.closedate}" /> 
+                                </apex:outputText></div>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Rates Types</td>
+                            <td><apex:outputField value="{!opp.Rates_Types__c}" /></td>
+                            <td align="left" class="tdsize">Account Type</td>
+                            <td style="padding-left:7px;"><font size="4" color="red" >*</font>
+                            <!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                            <apex:actionRegion >
+                                    <apex:selectList value="{!opp.AccountType__c}" multiselect="false" size="1" disabled="{!if(chkvalue==false,true,false)}">
+                                        <apex:selectOption itemLabel="--None--" itemValue=""></apex:selectOption> 
+                                        <apex:selectOption itemLabel="New Account" itemValue="New Account"></apex:selectOption>
+                                        <apex:selectOption itemLabel="Child Account" itemValue="Child Account"></apex:selectOption>
+                                        <apex:actionSupport event="onchange" action="{!parentaccounts}" reRender="parent,rates"/>
+                                    </apex:selectList>
+                                    <apex:outputPanel rendered="{!acctype}">
+                                    <div style="color:Red;padding-left:10px;">Please select account type</div>
+                                    </apex:outputPanel>
+                                    
+                                </apex:actionRegion>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Returns </td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font>
+                                <apex:selectList value="{!opp.Controlled_Returns__c}"  multiselect="false" size="1" disabled="{!if(chkvalue==false,true,false)}">
+                                    <apex:selectOption itemLabel="--None--" itemValue=""></apex:selectOption>
+                                    <apex:selectOption itemLabel="Yes" itemValue="Yes"></apex:selectOption>
+                                    <apex:selectOption itemLabel="No" itemValue="No"></apex:selectOption>                                
+                                </apex:selectList>
+                                <apex:outputPanel rendered="{!Returns}">
+                                    <div style="color:Red;padding-left:10px;">Please Select Returns</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" class="tdsize">Parent A/C No</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font>
+                                <apex:Inputtext value="{!opp.Parent_A_C_No__c}" id="parent"  disabled="{!if(chkvalue==false || opp.AccountType__c=='New Account'||opp.AccountType__c==null,true,false)}"/>
+                                <!--</apex:outputPanel>-->
+                                <apex:outputPanel rendered="{!Parentacc}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Parent A/C No</div>
+                                    </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Fuel Exemption</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font>
+                                <apex:selectList value="{!opp.Fuel_Exemption__c}"  multiselect="false" size="1" disabled="{!if(chkvalue==false,true,false)}">
+                                    <apex:selectOption itemLabel="--None--" itemValue=""></apex:selectOption>
+                                    <apex:selectOption itemLabel="Yes" itemValue="Yes"></apex:selectOption>
+                                    <apex:selectOption itemLabel="No" itemValue="No"></apex:selectOption>                                
+                                </apex:selectList>
+                                <apex:outputPanel rendered="{!FuelExemption}">
+                                    <div style="color:Red;padding-left:10px;">Please Select Fuel Exemption</div>
+                                    </apex:outputPanel>
+                               <!--</apex:outputPanel> -->
+                            </td>
+                            <td align="left" class="tdsize">Parent A/C Rates</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                <apex:inputtext value="{!opp.Parent_Account_Rates__c}"  disabled="{!if(chkvalue==false || opp.AccountType__c=='New Account'||opp.AccountType__c==null,true,false)}" id="rates"/><!--</apex:outputPanel>-->
+                                <apex:outputPanel rendered="{!ParentRates}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Parent A/C Rates</div>
+                                    </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">C and W Exemption</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font>
+                                <apex:selectList value="{!opp.Cube_Weight__c}"  multiselect="false" size="1" disabled="{!if(chkvalue==false,true,false)}">
+                                    <apex:selectOption itemLabel="--None--" itemValue=""></apex:selectOption>
+                                    <apex:selectOption itemLabel="Yes" itemValue="Yes"></apex:selectOption>
+                                    <apex:selectOption itemLabel="No" itemValue="No"></apex:selectOption>                                
+                                </apex:selectList>
+                                <apex:outputPanel rendered="{!Cubeweight}">
+                                    <div style="color:Red;padding-left:10px;">Please select Cube weight</div>
+                                    </apex:outputPanel>
+                            <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" class="tdsize">New Account Number</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/> -->
+                                <font size="4" color="red" >*</font>
+                                <apex:Inputtext value="{!opp.New_Account_Number__c}"  disabled="{!if(chkvalue==false,true,false)}"/>
+                                <!--</apex:outputPanel>-->
+                                <apex:outputPanel rendered="{!AccountNumber}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter 9 digit A/C Number</div>
+                                    </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td align="left" class="tdsize">Expected Start Date</td>
+                            <td style="padding-left:8px;"><font size="4" color="red" >*</font><apex:inputField value="{!opp.Expected_Start_Date__c}" />
+                                <apex:outputPanel rendered="{!Expecteddate}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Date</div>
+                                    </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td align="left" colspan="2">&nbsp;</td>
+                        </tr>
+                        
+                        <tr>
+                            <td align="left" class="tdsize">Customer Name</td>
+                            <td><apex:outputField value="{!opp.Accountid}" /></td>
+                            <td align="left" colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Address</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                    <apex:Inputtext value="{!opp.Address__c}" id="testval"  disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!Address}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Address</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Suburb</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/> -->
+                                <font size="4" color="red" >*</font>
+                                    <apex:Inputtext value="{!opp.Suburb__c}" id="subtest"  disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!Suburb}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Suburb</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" class="tdsize">State and P/C</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                <apex:Inputtext value="{!opp.State__c}"  id="statetest" label="State and P/C" disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!state}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter State and P/C</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Contact 1</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                    <apex:Inputtext value="{!opp.Contact_1__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!Contact1}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Contact</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" class="tdsize">Phone1</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                <apex:Inputtext value="{!opp.Phone__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!Phone1}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Phone1</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Contact 2</td>
+                            <td style="padding-left:13px;"><apex:Inputtext value="{!opp.Contact_2__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td align="left" class="tdsize">Phone 2</td>
+                            <td style="padding-left:13px;"><apex:Inputtext value="{!opp.Phone1__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                       </tr>
+                        <tr>
+                            <td align="left" class="tdsize">IT Contact</td>
+                            <td style="padding-left:13px;"><apex:Inputtext value="{!opp.IT_Contact__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td align="left" class="tdsize">IT Phone</td>
+                            <td style="padding-left:13px;"><apex:Inputtext value="{!opp.Phone2__c}"  disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">EMail</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                    <apex:Inputtext value="{!opp.Email__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <apex:outputPanel rendered="{!EMail}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter EMail</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" class="tdsize">Monthly Trade</td>
+                            <td>
+                                <!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/>-->
+                                <font size="4" color="red" >*</font> 
+                                <apex:Inputtext value="{!opp.Monthly_Trade__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                                <apex:outputPanel rendered="{!MonthlyTrade}">
+                                    <div style="color:Red;padding-left:10px;">Please Enter Monthly Trade</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                        </tr>
+                        
+                        <tr>
+                            <td align="left" class="tdsize">Software</td>
+                            <td><!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                                <apex:outputPanel styleClass="requiredBlock" layout="block"/> -->
+                                <font size="4" color="red" >*</font>
+                                <apex:selectList value="{!opp.Software__c}" multiselect="false" size="1" disabled="{!if(chkvalue==false,true,false)}">
+                                    <apex:selectOption itemLabel="--None--" itemValue=""></apex:selectOption> 
+                                    <apex:selectOption itemLabel="EzyFreight" itemValue="EzyFreight"></apex:selectOption>
+                                    <apex:selectOption itemLabel="IFS" itemValue="IFS"></apex:selectOption>
+                                    <apex:selectOption itemLabel="Send It" itemValue="Send It"></apex:selectOption>
+                                    <apex:selectOption itemLabel="SupplyMaster" itemValue="SupplyMaster"></apex:selectOption>
+                                    <apex:selectOption itemLabel="Moveit" itemValue="Moveit"></apex:selectOption>
+                                    <apex:selectOption itemLabel="Neto" itemValue="Neto"></apex:selectOption>
+                                    <apex:selectOption itemLabel="F-POS" itemValue="F-POS"></apex:selectOption>
+                                    <apex:selectOption itemLabel="Own" itemValue="Own"></apex:selectOption>
+                                    <apex:selectOption itemLabel="Other" itemValue="Other"></apex:selectOption>
+                                </apex:selectList>
+                                <apex:outputPanel rendered="{!Software}">
+                                    <div style="color:Red;padding-left:10px;">Please Select Software</div>
+                                    </apex:outputPanel>
+                                <!--</apex:outputPanel>-->
+                            </td>
+                            <td align="left" colspan="2">&nbsp;</td>
+                        </tr>
+                        
+                    </table>
+                </td>
+            </tr>
+            
+            <tr><td>&nbsp;</td></tr>
+            
+            <tr>
+                <td colspan="4" align="left">
+                  
+                    <table align="left" cellpadding="3" cellspacing="7" border="0"  width="100%">
+                     
+                        <tr>
+                            <td align="left" class="tdsize" >Same as Above</td><td style="padding-left:10px;">
+                                                     
+                            <apex:inputcheckbox value="{!chkval}" id="chk" onClick="grabExName()" disabled="{!if(chkvalue==false,true,false)}"/>
+                                    <script type="text/javascript">
+                                    function grabExName()
+                                     {
+                                        var ex = document.getElementById('{!$Component.testval}').value;
+                                        ex +='\n'+ document.getElementById('{!$Component.subtest}').value;
+                                        ex +='\n'+ document.getElementById('{!$Component.statetest}').value;
+                                        document.getElementById('{!$Component.address1}').value=ex;
+                                     }
+                                    </script>
+                        </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize" width="20%" valign="top">Pick Up Address 1</td><td valign="top">
+                                <!--<apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block"/> -->
+                            <font size="4" color="red" valign="top">*</font>                            
+                            <apex:Inputtextarea value="{!opp.Pick_up_address_1__c}"  style="width:90%;height:50px;" id="address1" disabled="{!if(chkvalue==false,true,false)}"/>
+                            <apex:outputPanel rendered="{!pickupaddr1}">
+                                    <div style="color:Red;padding-left:10px;"> Please Enter Pick Up Address 1</div>
+                                    </apex:outputPanel>
+                            <!--</apex:outputPanel>-->
+                            </td>
+                        </tr>
+                       
+                        <tr>
+                            <td align="left" class="tdsize" valign="top">Pick Up Address 2</td><td style="padding-left:11px;">
+                                                             
+                            <apex:Inputtextarea value="{!opp.Pick_up_address_2__c}"  style="width:91%;" disabled="{!if(chkvalue==false,true,false)}"/>
+                            
+                           </td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize" valign="top">Pick Up Address 3</td><td style="padding-left:11px;">
+                                <apex:Inputtextarea value="{!opp.Pick_up_address_3__c}"  style="width:91%;" disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                    </table>
+                     
+                </td>
+            </tr>
+            
+            <tr><td>&nbsp;</td></tr>
+            
+            <tr>
+                <td colspan="4" align="left" >
+                    <table cellpadding="3" cellspacing="3" border="0"   width="100%" class="tdsize" >
+                        <tr>
+                            <td colspan="4" align="center">
+                                <font size="4">Option/Settings (not all are available for EzyFreight)</font>
+                            </td>
+                        </tr>
+                        
+                    </table>
+                </td>
+            </tr>
+            
+            <tr>
+                <td>
+                    <table cellspacing="3" cellpadding="3" border="0"  width="100%" style="display:{!if(systemadminpanel==true,'normal','none')}">
+                        
+                        <tr>
+                            <td Class="tdsize" >Unit Types</td>
+                            <td><apex:inputField value="{!opp.Unit_Types__c}"  /></td>
+                            <td colspan="2">
+                                <table width="100%">
+                                <tr>
+                                    <td Class="tdsize" width="40%" valign="center">Billing Subm Date</td>
+                                    <td valign="top"><apex:inputField value="{!opp.SUBF__c}" /></td>
+                                </tr>
+                                <tr>
+                                    <td Class="tdsize">GW Setup Date</td>
+                                    <td><apex:inputField value="{!opp.GW_Setup_Date__c}" /></td>
+                                </tr>
+                                </table>
+                            </td>
+                            
+                        </tr>
+                        <tr>
+                            <td Class="tdsize" width="20%">Tracking Key</td>
+                            <td width="30%"><apex:Inputtext value="{!opp.Tracking_Key__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td Class="tdsize" width="20%">Gateway Id</td>
+                            <td width="30%"><apex:Inputtext value="{!opp.Gateway_ID__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Gateway Login</td>
+                            <td><apex:Inputtext value="{!opp.Gateway_Login__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td Class="tdsize">Gateway Password</td>
+                            <td><apex:Inputtext value="{!opp.Gateway_Password__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">FTP Login</td>
+                            <td><apex:Inputtext value="{!opp.FTP_Login__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td Class="tdsize">FTP Password</td>
+                            <td><apex:Inputtext value="{!opp.FTP_Password__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Connote Range</td>
+                            <td ><apex:Inputtext value="{!opp.Connote_Range_From__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td Class="tdsize">To</td>
+                            <td ><apex:Inputtext value="{!opp.Connote_Range_To__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Label Range</td>
+                            <td><apex:Inputtext value="{!opp.Lebel_Range_From__c}"   disabled="{!if(chkvalue==false,true,false)}"/>
+                            </td>
+                            <td Class="tdsize">To</td>
+                            <td><apex:Inputtext value="{!opp.Lebel_Range_To__c}"   disabled="{!if(chkvalue==false,true,false)}"/> 
+                            </td>
+                        </tr>
+                         
+                    </table>
+                    
+                    <table cellspacing="3" cellpadding="3" border="0"  width="100%" style="display:{!if(systemadminpanel!=true,'normal','none')}">
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td Class="tdsize">Billing Subm Date</td>
+                            <td><apex:outputField value="{!oppval.SUBF__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td Class="tdsize">GW Setup Date</td>
+                            <td><apex:outputField value="{!oppval.GW_Setup_Date__c}" /></td>
+                        </tr> 
+                        <tr>
+                            <td Class="tdsize">Unit Types</td>
+                            <td><apex:outputField value="{!oppval.Unit_Types__c}"  /></td>
+                            <td Class="tdsize">Service Codes</td>
+                            <td><apex:outputField value="{!oppval.Service_Codes__c}"   />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Tracking Key</td>
+                            <td><apex:outputField value="{!oppval.Tracking_Key__c}" />
+                            </td>
+                            <td Class="tdsize">Gateway Id</td>
+                            <td><apex:outputField value="{!oppval.Gateway_ID__c}"   />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Gateway Login</td>
+                            <td><apex:outputField value="{!oppval.Gateway_Login__c}"/>
+                            </td>
+                            <td Class="tdsize">Gateway Password</td>
+                            <td><apex:outputField value="{!oppval.Gateway_Password__c}"   />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">FTP Login</td>
+                            <td><apex:outputField value="{!oppval.FTP_Login__c}"/>
+                            </td>
+                            <td Class="tdsize">FTP Password</td>
+                            <td><apex:outputField value="{!oppval.FTP_Password__c}"   />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Connote Range</td>
+                            <td ><apex:outputField value="{!oppval.Connote_Range_From__c}"/>
+                            </td>
+                            <td Class="tdsize">To</td>
+                            <td ><apex:outputField value="{!oppval.Connote_Range_To__c}"   />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Label Range</td>
+                            <td><apex:outputField value="{!oppval.Lebel_Range_From__c}" />
+                            </td>
+                            <td Class="tdsize">To</td>
+                            <td><apex:outputField value="{!oppval.Lebel_Range_To__c}"   /> 
+                            </td>
+                        </tr>
+                       
+                    </table>
+                </td>
+            </tr>
+                             
+        </table>
+        <table align="Center">
+          <tr><td ><apex:commandButton value="Save" action="{!save1}"  style="width:100px;" disabled="{!if(chkvalue==false,true,false)}" /></td>
+             <td ><apex:commandButton value="Cancel" action="{!cancel}" style="width:100px;" /></td>                       
+            </tr>        
+        </table>
+        
+    </div>
+    
+    </apex:pageBlock>
+</div>
+</body>
+</html>
+
+</apex:form>
+</apex:page>
+
+=============================================
+
+public class CustomerSetupFormpagecontroller  
+{
+    public boolean testval{get;set;}
+    public id Profileid{get;set;}
+    public profile Profiles{get;set;}
+    public opportunity Opp{get;set;}
+    public opportunity Oppval{get;set;}
+    public string Oid{get;set;}
+    public account acc{get;set;}
+    public string ownerid{get;set;}
+    public string products{get;set;}
+    public string rates{get;set;}
+    public string customername{get;set;}
+    public boolean chkval{get;set;}
+    public boolean chkvalue{get;set;}
+    public boolean admin{get;set;}
+    public attachment attach{get;set;}
+    public integer size{get;set;}
+    public boolean systemadminpanel{get;set;}
+    public boolean attachmentpanel{get;set;}
+    public boolean acctype{set;get;}
+    public boolean checkmessage{set;get;}
+    public boolean Othermessage{set;get;}
+    public string apps{set;get;}
+    public boolean Error{set;get;}
+
+    public CustomerSetupFormpagecontroller(ApexPages.StandardController controller)
+    {
+        
+        chkvalue=false;
+        attachmentpanel=true;
+        attach=new attachment();       
+        Opp=new opportunity();
+        Oid=apexpages.currentpage().getparameters().get('id');
+        Oppval=[select id,name,createddate,products__c,Accountid,ownerid,Gateway_Login__c,Rates_Types__c,Service_Codes__c,Gateway_ID__c,Lebel_Range_To__c,Connote_Range_To__c,FTP_Password__c,Tracking_Key__c,StageName,probability,Customer_Code__c,GW_Setup_Date__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Industry__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,
+                Controlled_Returns__c,Fuel_Exemption__c,Address__c,Suburb__c,Contact_1__c,Contact_2__c,Cube_Weight__c,IT_Contact__c,Email__c,Software__c,Date_Entered_into_pipeline__c,AccountType__c,closedate,Parent_A_C_No__c,Parent_Account_Rates__c,
+                New_Account_Number__c,Expected_Start_Date__c,Phone__c,Phone1__c,Phone2__c,Monthly_Trade__c,State__c,Pick_up_address_1__c,Pick_up_address_2__c,Pick_up_address_3__c,Unit_Types__c,FTP_Login__c,Connote_Range_From__c,Lebel_Range_From__c,
+                Gateway_Password__c,Our_Weakness__c,SUBF__c,BDE_Setup_form_submission__c,attach_rates__C from opportunity where id=:oid]; 
+        Opp.ownerid=Oppval.ownerid;
+        Opp.products__c=Oppval.products__c;
+        Opp.accountid=Oppval.Accountid;
+        Opp.Rates_Types__c=Oppval.Rates_Types__c;
+        opp.New_Account_Number__c=Oppval.Customer_Code__c;
+        opp.Attach_Rates__c=Oppval.attach_rates__C;
+        Opp.id=Oid;
+        Opp.Date_Entered_into_pipeline__c=system.today();
+        apps=apexpages.currentpage().getparameters().get('apps');
+        if(apps=='true')
+        {
+            chkvalue=true;
+            Opp=[select id,name,createddate,products__c,Accountid,ownerid,Gateway_Login__c,Rates_Types__c,Service_Codes__c,Gateway_ID__c,Lebel_Range_To__c,Connote_Range_To__c,FTP_Password__c,Tracking_Key__c,StageName,probability,Customer_Code__c,GW_Setup_Date__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Industry__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,
+                Controlled_Returns__c,Fuel_Exemption__c,Address__c,Suburb__c,Contact_1__c,Contact_2__c,Cube_Weight__c,IT_Contact__c,Email__c,Software__c,Date_Entered_into_pipeline__c,AccountType__c,Parent_A_C_No__c,Parent_Account_Rates__c,
+                New_Account_Number__c,Expected_Start_Date__c,Phone__c,Phone1__c,Phone2__c,Monthly_Trade__c,State__c,Pick_up_address_1__c,Pick_up_address_2__c,Pick_up_address_3__c,Unit_Types__c,FTP_Login__c,Connote_Range_From__c,Lebel_Range_From__c,
+                Gateway_Password__c,Our_Weakness__c,SUBF__c,BDE_Setup_form_submission__c,attach_rates__C  from opportunity where id=:oid];
+            
+        }
+        
+        Profileid=userinfo.getProfileId();
+        Profiles= [select id from profile where name='System Administrator'];
+        if(Profiles.id==Profileid)
+        {
+            systemadminpanel=True;
+            admin=True;
+            opp.Service_Codes__c=oppval.Rates_Types__c;
+        }
+        Else
+        {
+            oppval.closedate=date.today();
+            opp.closedate=date.today();
+        }
+    }
+    
+    public string first{set;get;}
+    
+    public pagereference RedirecttoDetail()
+    {
+        pagereference ref;
+        if(apps=='true')
+            return null;
+        if(Profiles.id!=Profileid && oppval.BDE_Setup_form_submission__c==true)
+        {
+            ref=new pagereference('/apex/customersetupForms?id='+apexpages.currentpage().getparameters().get('id')+'&first='+first);
+            ref.setredirect(true);
+        }
+        Else if(Profiles.id!=Profileid && oppval.BDE_Setup_form_submission__c==false)
+        {
+            opp.BDE_Setup_form_submission__c=true;
+            first='true';
+        }
+        return ref;
+    }
+
+    public boolean dateentered{set;get;}
+    public boolean AttachRates{set;get;}
+    public boolean Returns{set;get;}
+    public boolean Parentacc{set;get;}
+    public boolean FuelExemption{set;get;}
+    public boolean ParentRates{set;get;}
+    public boolean Cubeweight{set;get;}
+    public boolean AccountNumber{set;get;}
+    public boolean Address{set;get;}
+    public boolean Suburb{set;get;}
+    public boolean state{set;get;}
+    public boolean Contact1{set;get;}
+    public boolean Phone1{set;get;}
+    public boolean EMail{set;get;}
+    public boolean MonthlyTrade{set;get;}
+    public boolean Software{set;get;}
+    public boolean pickupaddr1{set;get;}
+    public boolean Expecteddate{set;get;}
+
+    public pagereference save1()
+    {
+        checkmessage =false;
+        Othermessage=false;
+        if(opp.AccountType__c == null || opp.AccountType__c == '')
+            acctype = true ;  
+        else
+            acctype = false;
+            
+        if(opp.AccountType__c =='Child Account'&& (opp.Parent_A_C_No__c==null || opp.Parent_A_C_No__c==''))
+            Parentacc=true;
+        Else
+            Parentacc=false;
+        if(opp.AccountType__c =='Child Account' && (opp.Parent_Account_Rates__c==null || opp.Parent_Account_Rates__c==''))
+            ParentRates=true;
+        Else
+            ParentRates=false;
+        
+        if(opp.Date_Entered_into_pipeline__c>oppval.closedate)
+            dateentered=true;
+        else
+            dateentered=false;
+        if(opp.Attach_Rates__c== null || opp.Attach_Rates__c== '')
+            AttachRates= true ;  
+        else
+            AttachRates= false;
+            if(opp.Controlled_Returns__c== null || opp.Controlled_Returns__c== '')
+            Returns= true ;  
+        else
+            Returns= false;
+            if(opp.Fuel_Exemption__c== null || opp.Fuel_Exemption__c== '')
+            FuelExemption= true ;  
+        else
+            FuelExemption= false;
+            if(opp.Cube_Weight__c== null || opp.Cube_Weight__c== '')
+            Cubeweight= true ;  
+        else
+            Cubeweight= false;
+            if(opp.New_Account_Number__c== null || opp.New_Account_Number__c== '')
+            AccountNumber= true ;  
+        else
+            AccountNumber= false;
+            if(opp.Expected_Start_Date__c== null )
+            Expecteddate= true ;  
+        else
+            Expecteddate= false;
+            if(opp.Address__c== null || opp.Address__c== '')
+            Address= true ;  
+        else
+            Address= false;
+            if(opp.Suburb__c== null || opp.Suburb__c== '')
+            Suburb= true ;  
+        else
+            Suburb= false;
+            if(opp.State__c== null || opp.State__c== '')
+            State= true ;  
+        else
+            State= false;
+            if(opp.Contact_1__c== null || opp.Contact_1__c== '')
+            Contact1= true ;  
+        else
+            Contact1= false;
+            
+            if(opp.Phone__c== null || opp.Phone__c== '')
+            Phone1= true ;  
+        else
+            Phone1= false;
+            
+            if(opp.Email__c== null || opp.Email__c== '')
+            Email= true ;  
+        else
+            Email= false;
+            
+            if(opp.Monthly_Trade__c== null || opp.Monthly_Trade__c== '')
+            MonthlyTrade= true ;  
+        else
+            MonthlyTrade= false;
+            
+            if(opp.Software__c== null || opp.Software__c== '')
+            Software= true ;  
+        else
+            Software= false;
+            if(opp.Pick_up_address_1__c== null || opp.Pick_up_address_1__c== '')
+            pickupaddr1= true ;  
+        else
+            pickupaddr1= false;
+        if(acctype==true ||ParentRates==true || parentacc==true || Contact1==true || FuelExemption==true||Returns==true || Attachrates==true || AccountNumber==true ||Expecteddate==true || State==true||Suburb==true 
+                ||Address==true || Cubeweight==true || dateentered==true ||pickupaddr1==true ||Software==true || MonthlyTrade==true || Email==true || Phone1==true)
+        {
+            Error=true;
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO,'Please review and complete all missed fields below'));
+            return null;
+        }
+        Else
+            Error=false;
+        
+        try 
+        {
+            opp.Customer_Code__c=opp.New_Account_Number__c;
+            opp.New_Account_Number__c=opp.New_Account_Number__c;        
+            opp.CustomerSetupForm__c = true;
+            opp.stagename='6. Started Trading - Closed Won';
+            update Opp;
+            PageReference pageRef = new PageReference('/apex/customersetupForms?id='+apexpages.currentpage().getparameters().get('id')+'&first='+first);
+            return pageRef;
+        }
+        catch(DmlException e) 
+        {   
+            checkmessage = false;
+            Error=false;
+            Othermessage = true;
+            return null;
+        }
+        
+    }
+    
+    public PageReference cancel() 
+    {
+        PageReference pageRef = new PageReference('/006/o');
+        return pageRef;
+    }
+    
+    public pagereference parentaccounts()
+    {
+        return null;
+    }
+    
+    public list<attachment> notes=new list<attachment>();
+
+    /*public list<attachment> getatach()
+    {
+        return notes;
+    }*/
+
+    public boolean ccc;
+    
+    public pagereference onselectchk()
+    {
+        checkmessage = true;
+        Othermessage = false;
+        dateentered=false;
+        Error=false;
+        acctype=false; ParentRates=false; parentacc=false; Contact1=false; FuelExemption=false;Returns=false; Attachrates=false; AccountNumber=false;Expecteddate=false; State=false;Suburb=false; 
+        Address=false;Cubeweight=false; dateentered=false;pickupaddr1=false;Software=false; MonthlyTrade=false; Email=false; Phone1=false;
+        if(chkvalue == true)
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.INFO,'Please ensure Customer Application has been approved and that Rates are attached, then complete this form'));
+        }
+        
+        return null;
+    }
+}

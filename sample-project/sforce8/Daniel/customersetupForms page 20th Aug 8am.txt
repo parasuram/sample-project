@@ -1,0 +1,514 @@
+<apex:page standardController="opportunity" extensions="getcustomersetupForms" sidebar="false" >
+    <style>
+        .custPopup
+        {
+            background-color: white;
+            border-width: 2px;
+            border-style: solid;
+            z-index: 9999;
+            left: 50%;
+            padding:5px;
+            border-radius:10px;
+            position: absolute;
+            width: 330px;
+            margin-left: -150px;
+            top:100px;
+        }
+        .popupBackground
+        {
+            background-color:black;
+            opacity: 0.20;
+            filter: alpha(opacity = 20);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+         .wordwrap
+{
+/* wrap long text and urls */
+white-space: pre; /* CSS 2.0 */
+white-space: pre-wrap; /* CSS 2.1 */
+white-space: pre-line; /* CSS 3.0 */
+white-space: -pre-wrap; /* Opera 4-6 */
+white-space: -o-pre-wrap; /* Opera 7 */
+white-space: -moz-pre-wrap; /* Mozilla */
+word-wrap: break-word; /* IE 5+ */
+} 
+    </style>
+<style>
+.test {
+    word-wrap:break-word;
+    width:200px;
+    border:0px solid #000
+}
+</style>
+    <apex:form id="popupform">         
+        <apex:outputPanel id="tstpopup" >
+            <apex:outputPanel styleClass="popupBackground" layout="block" rendered="{!displayPopUp}" /> <!--rendered="{!displayPopUp}"-->
+                <apex:outputPanel styleClass="custPopup" layout="block" rendered="{!displayPopUp}" >
+                <apex:pageBlock >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel style="padding-top:20px;font-weight:bold;">Enter Email ids by separating (,)<br/>
+                                <apex:inputtextarea value="{!EmailAddresses}" rows="5" cols="50" style="resize: none;"/>
+                            </apex:outputLabel>
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                    <apex:pageBlockButtons location="bottom">
+                        <apex:commandButton value="Send Email" action="{!sendemail}"/>
+                        <apex:commandButton value="Cancel" action="{!cancel}"/>
+                    </apex:pageBlockButtons> 
+                </apex:pageBlock>               
+            </apex:outputPanel>
+        </apex:outputPanel>
+    </apex:form> 
+    
+  <apex:form >
+  <apex:pageMessages ></apex:pageMessages>
+  <html>
+<head>
+
+
+<style type="text/css">
+.container
+{
+    float:left;
+    width:100%;
+    font-family:Verdana, Arial, Helvetica, sans-serif;
+    font-size:12px;
+}
+.inner_container
+{
+    margin:0 auto;
+    width:925px;
+    border:1px solid #999999;
+}
+.header
+{
+    margin:0 auto;
+    text-align:center;
+    width:500px;
+    height:25px;
+    background-color:#666666;
+    color:#fff;
+    font-weight:bold;
+    font-size:18px;
+}
+.tdsize
+{
+    font-size:12px;
+    font-weight:bold;
+    
+}
+</style>
+</head>
+ <body>
+ <apex:outputPanel rendered="{!errormsg}">
+   <script type="text/javascript">
+    { 
+     window.parent.location.href ="/{!$CurrentPage.parameters.id}";
+    window.alert(" Customer Form Not Created for This Record "); }
+    </script>
+  </apex:outputPanel>  
+  <div class="container"><apex:pageBlock >
+    <!--<div style="display:{!if(setupformmessage==true,'normal','none')};color:red;font-weight:bold;padding-bottom:10px;">* You have already submitted a Customer Setup Form. If changes are required, please review and edit the existing submission.</div>-->
+    <div class="inner_container">
+        <div class="header">
+            Customer Setup Form
+        </div>  {!test}  
+        <table cellpadding="3" cellspacing="3"  border="0"  width="90%" style="margin:0 auto">
+         <tr>
+           <td valign="top" >
+             <table cellspacing="3" cellpadding="7" border="0" width="100%">
+         
+               <tr>
+                   <td align="left" class="tdsize" width="20%">Opportunity Owner </td>
+                   <td width="30%"><apex:outputfield value="{!opp.ownerid}" /></td>
+                   <td align="left" class="tdsize" valign="top" width="20%">Attach Rates URL</td>
+                   <td width="30%"> <table><apex:repeat value="{!urlslist}" var="u">
+                            <tr><td ><div class="test">   <a href="{!u.key}" target="_blank"> <apex:outputText value="{!u.value}..." ></apex:outputText></a></div>  </td></tr>
+                            </apex:repeat> </table>  
+                   </td>
+               </tr>
+               <tr>
+                   <td align="left" class="tdsize">Products</td>
+                   <td><apex:outputField value="{!opp.Products__c}" /></td>
+                   <td align="left" class="tdsize">Date Entered</td>
+                   <td><apex:outputField value="{!opp.Date_Entered_into_pipeline__c}"/></td>
+               </tr>
+               <tr>
+                   <td align="left" class="tdsize">Rates Types</td>
+                   <td><apex:outputField value="{!opp.Rates_Types__c}" /></td>
+                   <td align="left" class="tdsize">Account Type</td>
+                   <td><apex:outputField value="{!opp.AccountType__c}"/></td>
+               </tr>
+               <tr>
+                   <td align="left" class="tdsize">Returns </td>
+                   <td><apex:outputField value="{!opp.Controlled_Returns__c}"/></td>
+                   <td align="left" class="tdsize">Parent A/C No</td>
+                   <td><apex:outputtext value="{!opp.Parent_A_C_No__c}"/></td>
+               </tr>
+                <tr>
+                    <td align="left" class="tdsize">Fuel Exemption</td>
+                    <td><apex:outputField value="{!opp.Fuel_Exemption__c}" /></td>
+                    <td align="left" class="tdsize">Parent A/C Rates</td>
+                    <td><apex:outputField value="{!opp.Parent_Account_Rates__c}"/> </td>
+                </tr>   
+                <tr>
+                    <td align="left" class="tdsize">C and W Exemption</td>
+                    <td><apex:outputField value="{!opp.Cube_Weight__c}" /></td>
+                    <td align="left" class="tdsize">New Account Number</td>
+                    <td><apex:outputField value="{!opp.New_Account_Number__c}" /></td>
+                </tr>              
+                <tr>
+                    <td align="left" colspan="2">&nbsp;</td>
+                    <td align="left" class="tdsize">Expected Start Date</td>
+                    <td><apex:outputField value="{!opp.Expected_Start_Date__c}" /></td>
+                </tr> 
+                <tr>
+                    <td align="left" class="tdsize">Customer Name</td>
+                    <td><apex:outputField value="{!opp.Accountid}" /></td>
+                    <td align="left" colspan="2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">Address</td>
+                    <td><apex:outputfield value="{!opp.Address__c}" id="testval"/></td>
+                    <td align="left" colspan="2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">Suburb</td>
+                    <td><apex:outputField value="{!opp.Suburb__c}"/></td>
+                    <td align="left" class="tdsize">State and P/C</td>
+                    <td><apex:outputField value="{!opp.State__c}" /></td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">Contact 1</td>
+                    <td><apex:outputField value="{!opp.Contact_1__c}"/></td>
+                    <td align="left" class="tdsize">Phone1</td>
+                    <td><apex:outputField value="{!opp.Phone__c}" /></td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">Contact 2</td>
+                    <td><apex:outputField value="{!opp.Contact_2__c}"/></td>
+                    <td align="left" class="tdsize">Phone 2</td>
+                    <td><apex:outputField value="{!opp.Phone1__c}"/></td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">IT Contact</td>
+                    <td><apex:outputField value="{!opp.IT_Contact__c}"/></td>
+                    <td align="left" class="tdsize">IT Phone</td>
+                    <td><apex:outputField value="{!opp.Phone2__c}"/></td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">EMail</td>
+                    <td><apex:outputField value="{!opp.Email__c}"/></td>
+                    <td align="left" class="tdsize">Monthly Trade</td>
+                    <td><apex:outputField value="{!opp.Monthly_Trade__c}" /></td>
+                </tr>
+                <tr>
+                    <td align="left" class="tdsize">Software</td>
+                    <td><apex:outputField value="{!opp.Software__c}"/> </td>
+                    <td align="left" colspan="2">&nbsp;</td>
+                </tr>
+               
+             </table>
+           </td>
+           
+         </tr>
+         <tr><td>&nbsp;</td></tr>
+         
+         <tr>
+                <td colspan="4" align="left">
+                  
+                    <table align="left" cellpadding="3" cellspacing="7" border="0"  width="100%"><!--frame="box" rules="all"-->
+                     
+                        <tr>
+                          <td align="left" class="tdsize" width="20%" valign="top">Pick Up Address 1</td><td align="left">
+                          <apex:outputfield value="{!opp.Pick_up_address_1__c}" /> </td> 
+                        </tr>
+                         <tr>
+                            <td align="left" class="tdsize">Pick Up Address 2</td><td align="left">
+                            <apex:outputField value="{!opp.Pick_up_address_2__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td align="left" class="tdsize">Pick Up Address 3</td><td align="left">     
+                            <apex:outputField value="{!opp.Pick_up_address_3__c}" /></td>
+                        </tr>
+                        
+                    </table>
+                </td>
+        </tr>        
+         <tr><td>&nbsp;</td></tr>
+         
+         <tr>
+                <td colspan="4" align="left" >
+                    <table cellpadding="3" cellspacing="3" border="0"   width="100%" class="tdsize" >
+                        <tr>
+                            <td colspan="4" align="center">
+                                <font size="4">Option/Settings (not all are available for EzyFreight)</font>
+                            </td>
+                        </tr>
+                       
+                    </table>
+                </td>
+            </tr>
+            
+            <tr>
+                <td >
+                    <table cellspacing="3" cellpadding="3" border="0"  width="100%" >
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td Class="tdsize">Billing Subm Date</td>
+                            <td><apex:outputField value="{!opp.SUBF__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td align="left" colspan="2">&nbsp;</td>
+                            <td Class="tdsize">GW Setup Date</td>
+                            <td><apex:outputField value="{!opp.GW_Setup_Date__c}" /></td>
+                        </tr> 
+                        <tr>
+                            <td Class="tdsize" width="20%">Unit Types</td>
+                            <td width="30%"><apex:outputField value="{!opp.Unit_Types__c}"  /></td>
+                            <td Class="tdsize" width="20%">Service Codes</td>
+                            <td width="30%"><apex:outputField value="{!opp.Service_Codes__c}"/></td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Tracking Key</td>
+                            <td><apex:outputField value="{!opp.Tracking_Key__c}" /></td>
+                            <td Class="tdsize">Gateway Id</td>
+                            <td><apex:outputField value="{!opp.Gateway_ID__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Gateway Login</td>
+                            <td><apex:outputField value="{!opp.Gateway_Login__c}" /></td>
+                            <td Class="tdsize">Gateway Password</td>
+                            <td><apex:outputField value="{!opp.Gateway_Password__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">FTP Login</td>
+                            <td><apex:outputField value="{!opp.FTP_Login__c}" /></td>
+                            <td Class="tdsize">FTP Password</td>
+                            <td><apex:outputField value="{!opp.FTP_Password__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Connote Range</td>
+                            <td><apex:outputField value="{!opp.Connote_Range_From__c}" /></td>
+                            <td Class="tdsize">To</td>
+                            <td><apex:outputField value="{!opp.Connote_Range_To__c}" /></td>
+                        </tr>
+                        <tr>
+                            <td Class="tdsize">Label Range</td>
+                            <td><apex:outputField value="{!opp.Lebel_Range_From__c}" /></td>
+                            <td Class="tdsize">To</td>
+                            <td><apex:outputField value="{!opp.Lebel_Range_To__c}" /></td>
+                        </tr>
+                    </table>
+                </td>
+                
+            </tr>
+        
+      </table>
+      
+      <table align="Center">
+          <tr>
+          <td><apex:commandButton value="Edit" action="{!Editpage}"  style="width:150px;" /></td>
+          <td><apex:commandButton value="Back To Detail Page" action="{!Detailpage}"  style="width:150px;" /></td>
+          <td><apex:commandButton value="Email this Form" action="{!OpenPopup}"  style="width:150px;" /></td>
+             
+            </tr>        
+        </table>
+      
+    </div></apex:pageBlock>
+</div>
+  
+ </body>
+</html>
+  
+
+  </apex:form>
+  
+</apex:page>
+====================================================
+public class getcustomersetupForms 
+{
+ public string Oppid{get;set;}
+ public opportunity opp{set;get;}
+ public opportunity oppnew{set;get;}
+ public id Profileid{get;set;}
+ public profile Profiles{get;set;}
+ public boolean errormsg{set;get;}
+ public string test{get;set;}
+ public boolean setupformmessage{set;get;}
+ public boolean systemadminpanel{set;get;}
+  public boolean testing{set;get;}
+  list<string> urlstr = new list<string>();     
+ list<urlwrapper> urlwmap = new list<urlwrapper>();
+ 
+ public boolean displayPopUp{set;get;}
+    public getcustomersetupForms(ApexPages.StandardController controller) 
+    {
+      urlwmap.clear();
+      testing=false;
+      Oppid=apexpages.currentpage().getparameters().get('id');  
+      oppnew = [select id,CustomerSetupForm__c from opportunity where id=:Oppid];
+      
+      if(oppnew.CustomerSetupForm__c == false)
+      {
+       errormsg = true;
+      }
+      if(oppnew.CustomerSetupForm__c == true)
+      {
+      opp = [select id,name,CustomerSetupForm__c,BDE_Setup_form_submission__c,SUBF__c,Attach_Rates__c,AccountId,Account.name,ownerid,owner.name,Products__c,Pick_up_address_1__c,Connote_Range_To__c,Lebel_Range_To__c,Gateway_Password__c,FTP_Password__c,Unit_Types__c,Gateway_ID__c,Connote_Range_From__c,Service_Codes__c,Lebel_Range_From__c,FTP_Login__c,Tracking_Key__c,Gateway_Login__c,Pick_up_address_3__c,Pick_up_address_2__c,Rates_Types__c,Contact_2__c,Phone2__c,AccountType__c,New_Account_Number__c,Expected_Start_Date__c,Parent_Account_Rates__c,Monthly_Trade__c,IT_Contact__c,Parent_A_C_No__c,Date_Entered_into_pipeline__c,Address__c,Contact_1__c,Suburb__c,Software__c,State__c,Controlled_Returns__c,Email__c,Phone__c,Fuel_Exemption__c,Cube_Weight__c,Phone1__c,createddate,CloseDate,StageName,probability,Customer_Code__c,GW_Setup_Date__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Industry__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,Our_Weakness__c from opportunity where id=:Oppid and CustomerSetupForm__c = true];
+         if(opp.Attach_Rates__c!=null)
+         urlstr = opp.Attach_Rates__c.split(','); 
+         }
+         for(string ss:urlstr)
+         {
+           urlwrapper wurl = new urlwrapper();
+           wurl.key = ss;
+           if(ss.length()>15)
+           wurl.value = ss.substring(0, 15);
+           else
+           wurl.value = ss;
+           urlwmap.add(wurl);
+         }
+          
+        // urlmap.add(opp.Attach_Rates__c.split(','),opp.Attach_Rates__c.substring(0, 13));
+       
+                              
+    Profileid=userinfo.getProfileId();
+    Profiles= [select id from profile where name='System Administrator'];
+    string first=apexpages.currentpage().getparameters().get('first');
+    if(Profiles.id!=Profileid && opp.BDE_Setup_form_submission__c==true && first=='null')
+    {
+        setupformmessage=True;
+    
+    }
+      list<Attachment> attach = [select id,name,Body from Attachment where ParentId=:Oppid];
+    
+    }
+  
+    public list<urlwrapper> geturlslist()  //list<string> , map<string,string>
+    {
+       return urlwmap;
+     // return urlstr;
+    } 
+  /*public list<Attachment> getattachments()
+  {
+   list<Attachment> attach1 = [select id,name,Body from Attachment where ParentId=:Oppid];
+    return attach1 ;
+  }*/
+  
+  public PageReference Detailpage()
+  {
+   PageReference pageRef = new PageReference('/'+Oppid);
+   return pageRef;
+  
+  }
+
+    public pagereference Editpage()
+    {    
+        pagereference ref=new pagereference('/apex/CustomerSetupForm?id='+apexpages.currentpage().getparameters().get('id')+'&apps=true');
+        return ref;
+    }
+    public string EmailAddresses{set;get;}
+    public pagereference sendemail()
+    {
+        try
+        {
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage(); 
+
+        // Reference the attachment page and pass in the account ID
+        PageReference pdf =  Page.attachmentPDF;
+        pdf.getParameters().put('id',apexpages.currentpage().getparameters().get('id')); 
+        pdf.setRedirect(true);
+        
+        PageReference excel=  Page.attachmentExcel;
+        excel.getParameters().put('id',apexpages.currentpage().getparameters().get('id')); 
+        excel.setRedirect(true);
+        
+        
+       /*string CSVstring='';
+       
+       list<Opportunity> opp = [select id,name,CustomerSetupForm__c,BDE_Setup_form_submission__c,SUBF__c,Attach_Rates__c,AccountId,ownerid,Products__c,Pick_up_address_1__c,Connote_Range_To__c,Lebel_Range_To__c,Gateway_Password__c,FTP_Password__c,Unit_Types__c,Gateway_ID__c,Connote_Range_From__c,Service_Codes__c,Lebel_Range_From__c,FTP_Login__c,Tracking_Key__c,Gateway_Login__c,Pick_up_address_3__c,Pick_up_address_2__c,Rates_Types__c,Contact_2__c,Phone2__c,AccountType__c,New_Account_Number__c,Expected_Start_Date__c,Parent_Account_Rates__c,Monthly_Trade__c,IT_Contact__c,Parent_A_C_No__c,Date_Entered_into_pipeline__c,Address__c,Contact_1__c,Suburb__c,Software__c,State__c,Controlled_Returns__c,Email__c,Phone__c,Fuel_Exemption__c,Cube_Weight__c,Phone1__c,createddate,CloseDate,StageName,probability,Customer_Code__c,GW_Setup_Date__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Industry__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,Our_Weakness__c from opportunity where id=:Oppid and CustomerSetupForm__c = true];
+       CSVstring=' id,name,CustomerSetupForm__c,BDE_Setup_form_submission__c,SUBF__c,Attach_Rates__c,AccountId,ownerid,Products__c,Pick_up_address_1__c,Connote_Range_To__c,Lebel_Range_To__c,Gateway_Password__c,FTP_Password__c,Unit_Types__c,Gateway_ID__c,Connote_Range_From__c,Service_Codes__c,Lebel_Range_From__c,FTP_Login__c,Tracking_Key__c,Gateway_Login__c,Pick_up_address_3__c,Pick_up_address_2__c,Rates_Types__c,Contact_2__c,Phone2__c,AccountType__c,New_Account_Number__c,Expected_Start_Date__c,Parent_Account_Rates__c,Monthly_Trade__c,IT_Contact__c,Parent_A_C_No__c,Date_Entered_into_pipeline__c,Address__c,Contact_1__c,Suburb__c,Software__c,State__c,Controlled_Returns__c,Email__c,Phone__c,Fuel_Exemption__c,Cube_Weight__c,Phone1__c,createddate,CloseDate,StageName,probability,Customer_Code__c,GW_Setup_Date__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Industry__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,Our_Weakness__c+\n\r';
+       for(opportunity O:opp)
+       {
+       CSVstring+=o.id+','+o.name+','+o.CustomerSetupForm__c+','+o.BDE_Setup_form_submission__c+','+o.SUBF__c+','+o.Attach_Rates__c+','+o.AccountId+','+o.ownerid+','+o.Products__c+','+o.Pick_up_address_1__c+','+o.Connote_Range_To__c+','+o.Lebel_Range_To__c+','+o.Lebel_Range_To__c+','+o.Gateway_Password__c+','+o.FTP_Password__c+','+o.Unit_Types__c+','+o.Gateway_ID__c+','+o.Connote_Range_From__c+','+o.Service_Codes__c+','+o.Lebel_Range_From__c+','+o.FTP_Login__c+','+o.Tracking_Key__c+','+o.Gateway_Login__c+','+o.Pick_up_address_3__c+','+o.Pick_up_address_2__c+','+o.Rates_Types__c+','+o.Contact_2__c+','+o.Phone2__c+','+o.AccountType__c+','+o.New_Account_Number__c+','+o.Expected_Start_Date__c+','+o.Parent_Account_Rates__c+','+o.Monthly_Trade__c+','+o.IT_Contact__c+','+o.Parent_A_C_No__c+','+o.Date_Entered_into_pipeline__c+','+o.Address__c+','+o.Contact_1__c+','+o.Suburb__c+','+o.Software__c+','+o.State__c+','+o.Controlled_Returns__c+','+o.Email__c+','+o.Phone__c+','+o.Fuel_Exemption__c+','+o.Cube_Weight__c+','+o.Phone1__c+','+o.createddate+','+o.CloseDate+','+o.StageName+','+o.probability+','+o.Customer_Code__c+','+o.GW_Setup_Date__c+','+o.Accepted__c+','+o.Reason_Won_Lost__c+','+o.Amount+','+o.Opportunity_type__c+','+o.Branch__c+','+o.Industry__c+','+o.LeadSource+','+o.Campaignid+','+o.Runs_List__c+','+o.Competitor_A__c+','+o.Competitor_B__c+','+o.Competitor_C__c+','+o.Our_Strengths__c+','+o.Our_Weakness__c;
+       }
+       blob excelbody=blob.valueof(CSVstring);*/
+       blob exlbody;
+       if (!testing)
+            exlbody= excel.getContent();
+       else
+            exlbody= Blob.valueOf('Unit Test Attachment Body');
+
+        
+       //blob exlbody=excel.getContent();
+        Messaging.EmailFileAttachment efa1 = new Messaging.EmailFileAttachment();
+        efa1.setFileName('Customer_SetUp_Form.xls');
+        efa1.setBody(exlbody);
+  
+        // Take the PDF content
+        blob b;
+       if(!testing)        
+            b= pdf.getContent();
+       else
+            b= Blob.valueOf('Unit Test Attachment Body');
+        //Blob b = pdf.getContent();
+
+        // Create the email attachment
+        Messaging.EmailFileAttachment efa = new Messaging.EmailFileAttachment();
+        efa.setFileName('Customer_SetUp_Form.pdf');
+        efa.setBody(b);
+        
+        //String[] toAddresses = new String[]{'parasuram.b@advaanz.com'};
+        String[] toAddresses = EmailAddresses.split(',');
+        // Sets the paramaters of the email
+        email.setSubject( 'Customer SetUp Form');
+        email.setToAddresses(toAddresses);
+        email.setPlainTextBody( 'Customer Set up Form' );
+        email.setHtmlBody('<b>Customer SetUp Form</b>');
+        email.setFileAttachments(new Messaging.EmailFileAttachment[] {efa,efa1});
+
+        // Sends the email
+        Messaging.SendEmailResult [] r = 
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] {email});
+            displayPopUp=false;
+            EmailAddresses=null;
+           ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Confirm,'Mail has Sent Successfully')); 
+        }
+        Catch(Exception ex)
+        {
+            ApexPages.addMessage(new ApexPages.Message(ApexPages.Severity.Error,ex.getmessage()));
+        }  
+        
+        return null;
+    }
+    
+    public void OpenPopup()
+    {
+        EmailAddresses='eddie.disano@couriersplease.com.au,Silvio.Mueller@couriersplease.com.au,Mark.McGinley@couriersplease.com.au,gemma.bugarin@couriersplease.com.au';
+        displayPopUp=true;
+    }
+    
+    public void cancel()
+    {
+        displayPopUp=false;
+    }
+
+   public class urlwrapper
+   {
+    public string key{set;get;}
+    public string value{set;get;}
+     
+     public urlwrapper()
+     {
+     
+     }
+   }
+    
+}

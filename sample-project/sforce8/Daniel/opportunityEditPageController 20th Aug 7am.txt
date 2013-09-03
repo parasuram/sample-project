@@ -1,0 +1,301 @@
+<apex:page standardController="opportunity" extensions="OpportunityEditPageController" >
+
+    <style type="text/css">
+        .custPopup
+            {
+                background-color: white;
+                border-width: 2px;
+                border-style: solid;
+                z-index: 9999;
+                left: 50%;
+                padding:5px;
+                border-radius:10px;
+                position: absolute;
+                width: 600px;
+                margin-left: -250px;
+                top:100px;
+            }
+    </style>
+
+    <apex:form styleClass="custPopup" rendered="{!BDEEditForm}">
+        <center> 
+            <font color="yellow;" size="3"><b>You Don’t have the permission to EDIT any Pipeline #6 or Won Customers.  <br/>Please contact Administrator Gemma Bugarin @ 02-8823 5435</b></font> <br/> <br/><br/>  
+            <apex:commandButton value="OK" action="/{!$CurrentPage.parameters.id}" style="width:60px;font-size:1.26em;"/>
+        </center>
+    </apex:form>
+ <apex:form id="formid" rendered="{!EditForm}">
+ <apex:pagemessages ></apex:pagemessages>
+ <apex:sectionHeader subtitle="{!opp.name}" title="Opportunity Edit" />
+ <apex:pageBlock title="Opportunity Edit" mode="edit">
+ <div style="color:#CC6633;font-weight:bold;text-align:center;display:{!if(errormessage=true,'normal','none')}">Error: Invalid Data.<br/>
+Review all error messages below to correct your data.</div>
+ <apex:pageBlockSection title="Opportunity Information" collapsible="false" >
+ <apex:inputField value="{!opp.name}"/>
+ <apex:inputField value="{!opp.Amount}" required="true"/>
+ <apex:inputField value="{!opp.accountid}" required="true" />
+ <!--<apex:actionregion >
+ <table width="135%" ><tr><td width="8%"></td><td width="110px'"><apex:outputLabel ><b>Pipeline Stage</b></apex:outputLabel></td><td>-->
+ <apex:inputField value="{!opp.stagename}" id="stagefield"> 
+ <apex:actionSupport event="onchange" action="{!OnstageChange}" />
+ <div style="color:Red;display:{!if(opp.stagename=='5. Customer Setup Process' && opp.Products__c=='EDI' ,'normal','none')}">Please Complete Customer Setup Form</div>
+  </apex:inputfield>
+<!--</td></tr></table></apex:actionregion>-->
+ <apex:inputField value="{!opp.ownerid}" rendered="{!admin==true}"/>
+ <apex:outputField value="{!opp.ownerid}" rendered="{!admin==false}"/>
+ <apex:inputField value="{!opp.closedate}" />
+ <apex:inputField value="{!opp.Customer_Code__c}"/>
+ <apex:inputField value="{!opp.Probability}" id="probability"></apex:inputfield>
+ <apex:inputField value="{!opp.Accepted__c}"/>
+ <apex:inputField value="{!opp.Reason_Won_Lost__c}"/> 
+ </apex:pageBlockSection> 
+ <apex:pageBlockSection title="Additional Information">
+ <apex:inputField value="{!opp.Opportunity_type__c}" required="true"/>
+ <apex:inputField value="{!opp.Branch__c}" required="true"/>
+ <apex:inputField value="{!opp.Products__c}" required="true">
+ <apex:actionSupport event="onchange"  reRender="stagefield"/></apex:inputfield>
+ <apex:inputField value="{!opp.Industry__c}" required="true"/>
+ <apex:inputField value="{!opp.Rates_Types__c}"  required="true"><apex:actionSupport event="onchange" action="{!OnstageChange}" reRender="formid"/></apex:inputfield>
+ 
+ <apex:inputField value="{!opp.Date_Entered_into_pipeline__c}" rendered="{!admin==true}"/>
+ <!--<apex:outputLink value="https://www.google.com" target="_blank" style="padding-left:30px;">Attach Rates</apex:outputLink>
+ <apex:outputField value="{!opp.Attach_Rates__c}"/>-->
+ <apex:outputField value="{!opp.Date_Entered_into_pipeline__c}" rendered="{!admin==false}"/>
+ <apex:inputField value="{!opp.LeadSource}" required="true"/> 
+ <apex:inputField value="{!opp.Campaignid}"/>
+ <!--<apex:inputField value="{!opp.Expected_Start_Date__c}"/>-->
+ <apex:inputField value="{!opp.Runs_List__c}" required="true" />  
+ </apex:pageBlockSection>
+ <apex:pageBlockSection title="Market Intelligence">
+ <apex:inputField value="{!opp.Competitor_A__c}" required="true"/>
+ <apex:inputField value="{!opp.Our_Strengths__c}" />
+ <apex:inputField value="{!opp.Competitor_B__c}"/>
+ <apex:inputField value="{!opp.Our_Weakness__c}" />
+ <apex:inputField value="{!opp.Competitor_C__c}"/> 
+ </apex:pageBlockSection>
+<apex:pageBlockButtons >
+ <apex:commandButton value="Save" action="{!save1}" />
+<apex:commandButton value="Save & New" action="{!Saveandnew}"/>
+<apex:commandButton value="Cancel" action="{!cancel}" immediate="true"/>
+<apex:outputPanel rendered="{!signbutton}" id="panel1">
+<apex:commandButton value="Customer Setup Form" action="{!Signupform}"/> 
+</apex:outputPanel>
+<apex:outputPanel rendered="{!signbuttonnew}" >
+<apex:commandButton value="Customer Setup Form" action="{!Signupform}" disabled="true"/> 
+</apex:outputPanel>
+</apex:pageBlockButtons>
+</apex:pageBlock> 
+</apex:form>
+</apex:page>
+===================================================================
+public class OpportunityEditPageController 
+{
+public string test{set;get;}
+public boolean signbutton{set;get;}
+public boolean signbuttonnew{set;get;}
+Public string oppid{get;set;}
+Public opportunity opp{get;set;}
+public id Profileid{get;set;}
+public integer testval{set;get;}
+public string testval1{set;get;}
+public profile Profiles{get;set;}
+public profile bdeprof{get;set;}
+public boolean admin{get;set;}
+public boolean errormessage{get;set;}
+public boolean BDEEditForm{set;get;}
+public boolean EditForm{set;get;}
+    public OpportunityEditPageController(ApexPages.StandardController controller) 
+    { 
+        oppid=apexpages.currentpage().getparameters().get('id');
+        opp=new opportunity();
+        if(oppid !=null)
+        {
+            opp=[select id,name,createddate,Accountid,BDE_Setup_form_submission__c ,CustomerSetupForm__c ,CloseDate,Ownerid,StageName,probability,Customer_Code__c,new_account_number__c,Accepted__c,Reason_Won_Lost__c,Amount,Opportunity_type__c,Branch__c,Products__c,Rates_Types__c,Industry__c,Date_Entered_into_pipeline__c,LeadSource,Campaignid,Runs_List__c,Competitor_A__c,Competitor_B__c,Competitor_C__c,Our_Strengths__c,Our_Weakness__c,Expected_Start_Date__c from opportunity where id=:oppid];
+          
+        }
+        Profileid=userinfo.getProfileId();
+        Profiles= [select id from profile where name='System Administrator'];
+        if(Profiles.id==Profileid)
+        {
+            admin=true;
+            EditForm=true;        
+               
+        }
+        Else
+        {
+            admin=false;
+            if(opp.StageName=='6. Started Trading - Closed Won')
+                BDEEditForm=true;
+            Else
+                 EditForm=true;   
+            
+                
+        }
+        
+        if(opp.new_account_number__c !=null)
+        {
+            opp.customer_code__c=opp.new_account_number__c;
+        }
+        if(opp.StageName =='5. Customer Setup Process' && opp.products__c=='EDI')  //6. Started Trading - Closed Won 
+        {
+            signbutton=true;
+            signbuttonnew=false;
+        }
+        else
+        {
+            signbuttonnew = true;
+            signbutton = false;
+        }        
+        
+    
+    }
+    
+    
+    public pagereference save1()
+    {
+      
+       bdeprof = [select id from profile where name='Courier Please Standard'];
+        dummyStage=opp.StageName;
+        try
+        {
+          if((opp.StageName=='5. Customer Setup Process'&& opp.Products__c == 'EDI' && opp.Reason_Won_Lost__c==null)||(opp.StageName=='6. Started Trading - Closed Won' && (opp.Products__c == 'Coupons'||opp.Products__c == 'Satchels') && opp.Reason_Won_Lost__c==null))
+          {
+             apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, 'Please Enter Reason Won/Lost.'));
+              return null;
+          }
+          
+         if(opp.CustomerSetupForm__c == false && opp.Products__c == 'EDI' && (opp.StageName=='6. Started Trading - Closed Won' || opp.StageName=='5. Customer Setup Process'))
+            {
+                apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, 'Please complete the Customer Setup Form'));
+              return null;
+            }
+           
+            if(Profiles.id==Profileid)
+            {
+                opp.Service_Codes__c=opp.Rates_Types__c;
+            }
+            errormessage=false;
+            upsert opp;
+            PageReference pageRef = new PageReference('/'+opp.id);
+            return pageRef;
+        }
+        catch(DmlException e)
+        {   
+            opp.StageName=dummyStage;
+            errormessage=true;
+            return null;
+        }
+    }
+    public pagereference saveandnew()
+    {
+        bdeprof = [select id from profile where name='Courier Please Standard'];
+        dummyStage=opp.StageName;
+        try
+        {
+          if((opp.StageName=='5. Customer Setup Process'&& opp.Products__c == 'EDI' && opp.Reason_Won_Lost__c==null)||(opp.StageName=='6. Started Trading - Closed Won' && (opp.Products__c == 'Coupons'||opp.Products__c == 'Satchels') && opp.Reason_Won_Lost__c==null))
+          {
+             apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, 'Please Enter Reason Won/Lost.'));
+              return null;
+          }
+          
+           if(opp.CustomerSetupForm__c == false && opp.Products__c == 'EDI' && (opp.StageName=='6. Started Trading - Closed Won' || opp.StageName=='5. Customer Setup Process'))
+            {
+                apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, 'Please complete the Customer Setup Form'));
+              return null;
+            }
+           upsert opp;
+            PageReference newpage=new PageReference('/006/o');
+            newpage.setRedirect(true);
+            return newpage;
+        }
+        catch(DmlException e) 
+        {  
+            opp.StageName=dummyStage;
+            return null;
+        }
+    
+    }
+
+    public PageReference cancel() 
+    {
+        PageReference pageRef;
+        if(oppid!=null)        
+            pageRef = new PageReference('/'+opp.id);   
+        else
+            pageRef = new PageReference('/006/o');
+        return pageRef;
+        
+    }
+
+    public pagereference Onproductchange()
+    {
+        testval1=opp.Rates_Types__c;
+        opp.Rates_Types__c='';
+        return null;
+    }
+    
+    public string dummyStage{set;get;}
+    public pagereference OnStageChange()
+    {
+        dummyStage=opp.StageName;
+        id Profileids=userinfo.getProfileId();
+        profile Profiless= [select id from profile where name='Courier Please Standard'];
+        if(Profiless.id==Profileids && opp.StageName=='5. Customer Setup Process')
+        {
+            opp.closedate = system.today();
+        }
+        
+        if(opp.StageName=='1. Prospect' || opp.StageName=='2. First Contact' || opp.StageName=='3. Proposal' || opp.StageName=='4. Agreed Rates' || opp.StageName=='6. Started Trading - Closed Won' || opp.StageName=='7. Unable to gain - Closed Lost' || (opp.StageName=='5. Customer Setup Process' && opp.products__c != 'EDI'))        
+        {
+            errormessage=false;            
+            signbutton =false;
+            signbuttonnew =true;
+            opp.Rates_Types__c=null;
+            
+        }
+        Else 
+        if(opp.StageName=='5. Customer Setup Process' && opp.products__c == 'EDI')
+        {
+            errormessage=false;
+            opp.Probability=100;
+            signbutton = true;
+            signbuttonnew = false;
+        
+        }
+        
+        return null;
+    
+    }
+
+    public pagereference Signupform()
+    {
+        dummyStage=opp.StageName;
+        try
+        {
+            if((opp.StageName=='5. Customer Setup Process' || opp.StageName=='6. Started Trading - Closed Won' || opp.StageName=='7. Unable to gain - Closed Lost') && opp.Reason_Won_Lost__c==null)
+            {
+                apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, 'Please Enter Reason Won/Lost.'));
+                return null;
+            }
+            Else if(opp.StageName=='5. Customer Setup Process')
+            {
+                opp.StageName='4. Agreed Rates';
+            }
+            
+            if(Profiles.id==Profileid)
+            {
+                opp.Service_Codes__c=opp.Rates_Types__c;            
+            
+            }
+            
+            upsert opp;
+            PageReference pageRef = new PageReference('/apex/CustomerSetupForm?ownid='+opp.ownerid+'&prod='+opp.Products__c+'&rates='+opp.Rates_Types__c+'&cname='+opp.accountid+'&id='+oppid);            
+            return pageRef;
+        }
+        catch(Exception ex)
+        {
+            opp.StageName=dummyStage;
+            apexpages.addmessage(new ApexPages.Message(Apexpages.Severity.ERROR, ex.getmessage()));
+        }
+        return null;
+    }
+}
